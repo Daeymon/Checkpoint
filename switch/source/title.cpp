@@ -252,12 +252,18 @@ void loadTitles(void)
                         title.saveId(sid);
 
                         // load play statistics
-                        PdmPlayStatistics stats;
-                        res = pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(tid, uid, &stats);
-                        if (R_SUCCEEDED(res)) {
-                            title.playTime(StringUtils::format("%d", stats.playtimeMinutes / 60) + ":" +
-                                           StringUtils::format("%02d", stats.playtimeMinutes % 60) + " hours");
+                        if (R_SUCCEEDED(res = pdmqryInitialize())) {
+                            PdmPlayStatistics stats;
+                            res = pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(tid, uid, &stats);
+                            if (R_SUCCEEDED(res)) {
+                                title.playTime(StringUtils::format("%d", stats.playtimeMinutes / 60) + ":" +
+                                               StringUtils::format("%02d", stats.playtimeMinutes % 60) + " hours");
+                            }
                         }
+                        else {
+                            Logger::getInstance().log(Logger::WARN, "pdmqryInitialize failed with result 0x%08lX.", res);
+                        }
+                        pdmqryExit();
 
                         loadIcon(tid, nsacd, outsize - sizeof(nsacd->nacp));
 
